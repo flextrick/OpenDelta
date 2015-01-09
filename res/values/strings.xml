@@ -64,4 +64,15 @@
     
     <string name="flash_after_update_notice_title">Notice</string>
     <string name="flash_after_update_notice_description"><![CDATA[Additional updates are present in the <b>FlashAfterUpdate</b> folder, but secure mode is enabled. If you continue, these additional updates will <b>not</b> be flashed.]]></string>    
+
+    <!-- additions for developer mode -->
+    <string name="action_dev_mode">Log in as developer</string>
+    <string name="action_dev_mode_on">Logged in as developer</string>
+    <string name="dev_mode_login_logout_cancel">Cancel</string>
+    <string name="dev_mode_login">Log in</string>
+    <string name="dev_mode_logout">Log out</string>
+    <string name="dev_mode_login_password">Password</string>
+    <string name="dev_mode_remember_dev_login">Remember</string>
+    <string name="dev_mode_login_wrong_pw">Wrong password</string>
+    <string name="dev_mode_logout_dev_mode">Log out of dev mode?</string>
 </resources>

@@ -23,6 +23,7 @@ package eu.chainfire.opendelta;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,21 +41,33 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
+
+    private boolean rememberDevLogin;
+    private boolean isDevMode;
+
     private TextView title = null;
     private TextView sub = null;
     private ProgressBar progress = null;
     private Button checkNow = null;
     private Button flashNow = null;
-    
+
     private Config config;
+
+    private MenuItem menuItemDevMode;
+
+    private SharedPreferences mPrefs;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +93,10 @@ public class MainActivity extends Activity {
         flashNow = (Button) findViewById(R.id.button_flash_now);
         
         config = Config.getInstance(this);
+
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        rememberDevLogin = mPrefs.getBoolean(Config.PREFS_REMEMBER_LOGIN, false);
+        isDevMode = mPrefs.getBoolean(Config.PREFS_DEV_MODE, false);
     }
 
     @Override
@@ -91,14 +108,19 @@ public class MainActivity extends Activity {
         } else {
             menu.findItem(R.id.action_secure_mode).setChecked(config.getSecureModeCurrent());
         }
+
+        menuItemDevMode = menu.findItem(R.id.action_dev_mode);
+
+        if(rememberDevLogin) {
+            menuItemDevMode.setTitle(getString(R.string.action_dev_mode_on));
+            menuItemDevMode.setChecked(true);
+        }
         
         return true;
     }
 
     private void showNetworks() {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        int flags = prefs.getInt(UpdateService.PREF_AUTO_UPDATE_NETWORKS_NAME,
+        int flags = mPrefs.getInt(UpdateService.PREF_AUTO_UPDATE_NETWORKS_NAME,
                 UpdateService.PREF_AUTO_UPDATE_NETWORKS_DEFAULT);
         final boolean[] checkedItems = new boolean[] {
                 (flags & NetworkState.ALLOW_2G) == NetworkState.ALLOW_2G,
@@ -140,10 +162,10 @@ public class MainActivity extends Activity {
                             flags += NetworkState.ALLOW_ETHERNET;
                         if (checkedItems[5])
                             flags += NetworkState.ALLOW_UNKNOWN;
-                        prefs.
+                        mPrefs.
                                 edit().
                                 putInt(UpdateService.PREF_AUTO_UPDATE_NETWORKS_NAME, flags).
-                                commit();
+                                apply();
                     }
                 }).
                 setNegativeButton(android.R.string.cancel, null).
@@ -173,6 +195,77 @@ public class MainActivity extends Activity {
             textView.setTypeface(title.getTypeface());
     }
 
+    private void showDevLogin(){
+       final Dialog loginDialog =  new Dialog(this);
+       loginDialog.setContentView(R.layout.dialog_login);
+       loginDialog.setTitle(getString(R.string.dev_mode_login));
+
+        final SharedPreferences.Editor mEditor = mPrefs.edit();
+
+        final String devModePw = config.getDev_mode_pw();
+
+        Button btnLogin = (Button)loginDialog.findViewById(R.id.btnLogin);
+        Button btnCancel = (Button)loginDialog.findViewById(R.id.btnCancel);
+        final EditText etPassword = (EditText)loginDialog.findViewById(R.id.txtPassword);
+        final CheckBox cbRemember = (CheckBox)loginDialog.findViewById(R.id.remember_dev_login);
+
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(etPassword.getText().toString().equals(devModePw)){
+                    mEditor.putBoolean(Config.PREFS_DEV_MODE, true).apply();
+                    isDevMode = true;
+
+                    if(cbRemember.isChecked()) {
+                        mEditor.putBoolean(Config.PREFS_REMEMBER_LOGIN, true).apply();
+                        rememberDevLogin = true;
+                    }
+
+                    menuItemDevMode.setChecked(true);
+                    menuItemDevMode.setTitle(getString(R.string.action_dev_mode_on));
+
+                    Toast.makeText(MainActivity.this, getString(R.string.action_dev_mode_on), Toast.LENGTH_SHORT).show();
+
+                    loginDialog.dismiss();
+                }
+                else
+                    Toast.makeText(MainActivity.this, getString(R.string.dev_mode_login_wrong_pw), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loginDialog.dismiss();
+            }
+        });
+
+
+        loginDialog.show();
+    }
+
+    private void showDevLogout(){
+        new AlertDialog.Builder(this)
+                .setMessage(getString(R.string.dev_mode_logout_dev_mode))
+                .setNegativeButton(getString(R.string.dev_mode_login_logout_cancel), null)
+                .setPositiveButton(getString(R.string.dev_mode_logout), new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences.Editor mEditor = mPrefs.edit();
+
+                        mEditor.putBoolean(Config.PREFS_DEV_MODE, false)
+                            .putBoolean(Config.PREFS_REMEMBER_LOGIN, false).apply();
+
+                        isDevMode = false;
+                        rememberDevLogin = false;
+
+                        menuItemDevMode.setTitle(getString(R.string.action_dev_mode))
+                                .setChecked(false);
+                    }
+                }).show();
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -192,6 +285,11 @@ public class MainActivity extends Activity {
                     setNeutralButton(android.R.string.ok, null).
                     show();
                 
+                return true;
+            case R.id.action_dev_mode:
+                if(!isDevMode)
+                showDevLogin();
+                else showDevLogout();
                 return true;
             case R.id.action_about:
                 showAbout();

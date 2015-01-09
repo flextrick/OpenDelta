@@ -52,4 +52,16 @@
         <item>flo</item>
         <item>grouper</item>
     </string-array>
+
+    <!-- dev-mode additions -->
+    <string name="dev_mode_pw">euphoriatestbuilds</string>
+
+    <!-- URL base to find .delta files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base || for dev mode!-->
+    <string name="url_base_delta_dev"><!-- insert your dev url here --></string>
+
+    <!-- URL base to find .update and .sign files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base || for dev mode! -->
+    <string name="url_base_update_dev"><!-- insert your dev url here --></string>
+
+    <!-- URL base to find the full zip files, %s is expanded to property_device value. Path is suffixed by (expanded) filename_base -->
+    <string name="url_base_full_dev"><!-- insert your dev url here --></string>
 </resources>

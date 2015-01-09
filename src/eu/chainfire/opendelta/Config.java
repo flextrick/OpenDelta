@@ -47,6 +47,8 @@ public class Config {
     private final static String PREF_SECURE_MODE_NAME = "secure_mode";
     private final static String PREF_SHOWN_RECOVERY_WARNING_SECURE_NAME = "shown_recovery_warning_secure";
     private final static String PREF_SHOWN_RECOVERY_WARNING_NOT_SECURE_NAME = "shown_recovery_warning_not_secure";
+    public final static String PREFS_REMEMBER_LOGIN = "devLoginRemember";
+    public final static String PREFS_DEV_MODE = "devMode";
     
     private final SharedPreferences prefs;
 
@@ -57,7 +59,11 @@ public class Config {
     private final String path_flash_after_update;
     private final String url_base_delta;
     private final String url_base_update;
+    private final String url_base_delta_dev;
+    private final String url_base_update_dev;
+    private final String url_base_full_dev;
     private final String url_base_full;
+    private final String dev_mode_pw;
     private final boolean apply_signature;
     private final boolean inject_signature_enable;
     private final String inject_signature_keys;
@@ -111,11 +117,19 @@ public class Config {
                 property_device);
         url_base_full = String.format(Locale.ENGLISH, res.getString(R.string.url_base_full),
                 property_device);
+        url_base_delta_dev = String.format(Locale.ENGLISH, res.getString(R.string.url_base_delta_dev),
+                property_device);
+        url_base_update_dev = String.format(Locale.ENGLISH, res.getString(R.string.url_base_update_dev),
+                property_device);
+        url_base_full_dev = String.format(Locale.ENGLISH, res.getString(R.string.url_base_full_dev),
+                property_device);
         apply_signature = res.getBoolean(R.bool.apply_signature);
         inject_signature_enable = res.getBoolean(R.bool.inject_signature_enable);
         inject_signature_keys = res.getString(R.string.inject_signature_keys);
         secure_mode_enable = res.getBoolean(R.bool.secure_mode_enable);
         secure_mode_default = res.getBoolean(R.bool.secure_mode_default);
+
+        dev_mode_pw = res.getString(R.string.dev_mode_pw);
         
         boolean keep_screen_on = false;
         try {
@@ -161,15 +175,25 @@ public class Config {
     }
     
     public String getUrlBaseDelta() {
-        return url_base_delta;
+        if(prefs.getBoolean(PREFS_DEV_MODE, false))
+        return url_base_delta_dev;
+        else return url_base_delta;
     }
     
     public String getUrlBaseUpdate() {
-        return url_base_update;
+        if(prefs.getBoolean(PREFS_DEV_MODE, false))
+        return url_base_update_dev;
+        else return url_base_update;
     }
 
     public String getUrlBaseFull() {
-        return url_base_full;
+        if(prefs.getBoolean(PREFS_DEV_MODE, false))
+        return url_base_full_dev;
+        else return url_base_full;
+    }
+
+    public String getDev_mode_pw(){
+        return dev_mode_pw;
     }
     
     public boolean getApplySignature() {
